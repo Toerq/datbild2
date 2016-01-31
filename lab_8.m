@@ -30,7 +30,7 @@ v = readVTK('hydrogen.vtk');
 array = cell(27,1);
 close all;
 for i = 1 : 27
-  array{i} = imnoise(v,'gaussian', 0, 0.00001);
+  array{i} = imnoise(v,'gaussian', 0, 0.0001);
   %volrender(array{i});
 end
 
@@ -46,8 +46,29 @@ volrender(v_total);
 
 disp()
 
+%% 11
+image = imread('coins.png');
+subplot(1,3,1);
+imshow(image);
+subplot(1,3,2);
+BW = edge(image,'canny', [0 0.4], 2);
+imshow(BW)
 
+lenX = length(image(1,:));
+lenY = length(image(:,1));
 
+for(i = 1:lenY)
+    for(j = 1:lenX)
+        if(BW(i,j) == 1)
+            new_image(i,j) = 255;
+        else
+            new_image(i,j) = image(i,j);
+        end
+    end
+end
+    
+subplot(1,3,3);
+imshow(new_image);
 
 
 
