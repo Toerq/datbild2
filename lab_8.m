@@ -134,7 +134,16 @@ for(i = 1:length(L(:,1)))
 end
 imagesc(new_BW);
         
-        
+new_image = image;
+for(i = 1:lenY)
+    for(j = 1:lenX)
+        if(new_BW(i,j) == 1)
+            new_image(i,j) = 255;
+        else
+            new_image(i,j) = image(i,j);
+        end
+    end
+end
    
         
         
