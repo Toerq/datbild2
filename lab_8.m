@@ -98,10 +98,14 @@ imagesc(hough_small);
 title('Small coins');
 %%
 new_BW = zeros(lenY,lenX);
+local = zeros(1,5);
+incr = 1;
 for(i = 1:lenY)
     for(j = 1:lenX)
         if(hough_big(i,j) > 75)
-            new_BW = new_BW + generate_circle([lenY lenX], 29, [i j]);
+            find(local(:,1,1,1) >= i
+            local(incr) = [i,j,i+5,j+5, max(local(5),hough_big(i,j))];
+            %new_BW = new_BW + generate_circle([lenY lenX], 29, [i j]);
         end
     end
 end
