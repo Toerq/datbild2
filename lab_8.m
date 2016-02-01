@@ -89,14 +89,22 @@ for(i = 1:lenY)
         end
     end
 end
-%%
+%% Plot hough
 subplot(1,2,1);
 imagesc(hough_big);
 title('Big coins');
 subplot(1,2,2);
 imagesc(hough_small);
 title('Small coins');
-
-
+%%
+new_BW = zeros(lenY,lenX);
+for(i = 1:lenY)
+    for(j = 1:lenX)
+        if(hough_big(i,j) > 75)
+            new_BW = new_BW + generate_circle([lenY lenX], 29, [i j]);
+        end
+    end
+end
+imshow(new_BW);
 
 
