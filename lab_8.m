@@ -85,16 +85,17 @@ R_end= 30;
 R_step = 0.25;
 R_total = (R_end - R_start)/R_step;
 hough_big = zeros(lenY,lenX,R_total + 1);
+hough_small = zeros(lenY,lenX,R_total + 1);
 
 
 for(R = R_start:R_step:R_end)
-    tic;
+    tic
     R
     for(i = 1:lenY)
         for(j = 1:lenX)
             if(BW(i,j) == 1)
                 hough_big(:,:,hough_index) = hough_big(:,:,hough_index) + generate_circle([lenY lenX], R, [i j]);
-                %hough_small(hough_index) = hough_small(hough_index) + generate_circle([lenY lenX], 25, [i j]);
+                hough_small(:,:,hough_index) = hough_small(:,:,hough_index) + generate_circle([lenY lenX], R - 4, [i j]);
             end
         end
     end
@@ -112,45 +113,82 @@ title('Small coins');
 regionprops(hough_big);
 %%
 len = length(hough_big(1,1,:));
-peaks = zeros(6,2,len);
+peaks_big = zeros(6,2,len);
+peaks_small = zeros(4,2,len);
 
 for(i = 1:len)
-    peaks(:,:,i) = sortrows(houghpeaks(hough_big(:,:,i),6));
+    peaks_big(:,:,i) = sortrows(houghpeaks(hough_big(:,:,i),6));
+    peaks_small(:,:,i) = sortrows(houghpeaks(hough_small(:,:,i),4));
 end
 
-max_peaks = zeros(6,4); % (value,y,x,radius)
+max_peaks_big = zeros(6,4); % (value,y,x,radius)
+max_peaks_small = zeros(4,4); % (value,y,x,radius)
 
 for(j = 1:6)
     for(i = 1:len)
-        y = peaks(j,1,i);
-        x = peaks(j,2,i);
-        if(hough_big(y,x,i) > max_peaks(j,1))
-            max_peaks(j,1) = hough_big(y,x,i);
-            max_peaks(j,2) = y;
-            max_peaks(j,3) = x;
-            max_peaks(j,4) = R_step*j+R_start;
+        y = peaks_big(j,1,i);
+        x = peaks_big(j,2,i);
+        if(hough_big(y,x,i) > max_peaks_big(j,1))
+            max_peaks_big(j,1) = hough_big(y,x,i);
+            max_peaks_big(j,2) = y;
+            max_peaks_big(j,3) = x;
+            max_peaks_big(j,4) = R_step*j+R_start;
         end
     end
 end
 
+for(j = 1:4)
+    for(i = 1:len)
+        y = peaks_small(j,1,i);
+        x = peaks_small(j,2,i);
+        if(hough_small(y,x,i) > max_peaks_small(j,1))
+            max_peaks_small(j,1) = hough_small(y,x,i);
+            max_peaks_small(j,2) = y;
+            max_peaks_small(j,3) = x;
+            max_peaks_small(j,4) = R_step*j+R_start - 4;
+        end
+    end
+end
 new_image = zeros(lenY,lenX);
 for(i = 1:6)
-            max_peaks(i,1);
-            y = max_peaks(i,2);
-            x = max_peaks(i,3);
-            radius = max_peaks(j,4);
+            max_peaks_big(i,1);
+            y = max_peaks_big(i,2);
+            x = max_peaks_big(i,3);
+            radius = max_peaks_big(j,4);
+            new_image = new_image + generate_circle([lenY lenX], radius, [y x]);
+end
+for(i = 1:4)
+            max_peaks_small(i,1);
+            y = max_peaks_small(i,2);
+            x = max_peaks_small(i,3);
+            radius = max_peaks_small(j,4);
             new_image = new_image + generate_circle([lenY lenX], radius, [y x]);
 end
 new_image = new_image*255;
 
-imshow(new_image);
+
 %for(i = 1:length(hough_big(1,1,:)))
 %    peaks(i) = houghpeaks(hough_big(:,:,i),6)
 %end
+im_edge = double(image) + double(new_image);
+subplot(1,2,1);
+imshow(new_image);
+subplot(1,2,2);
+imshow(im_edge/255);
 
+for(i = 1:4)
+    y = max_peaks_small(i,2);
+    x = max_peaks_small(i,3);
+    radius = num2str(max_peaks_small(i,4));
+    text(x-6,y,radius);
+end
 
-
-
+for(i = 1:6)
+    y = max_peaks_big(i,2);
+    x = max_peaks_big(i,3);
+    radius = num2str(max_peaks_big(i,4));
+    text(x-6,y,radius);
+end
 %%
 new_BW = zeros(lenY,lenX);
 L = zeros(1,5); %L = local neighbourhood
@@ -206,7 +244,7 @@ for(i = 1:lenY)
     end
 end
    
-        
+       
         
 %            index_Y = find(local(:,1,1,1) >= i)
 %            if(isempty(index))
