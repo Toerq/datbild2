@@ -78,17 +78,30 @@ imshow(new_image);
 lenX = length(BW(1,:));
 lenY = length(BW(:,1));
 
-hough_big = zeros(lenY,lenX);
 hough_small = zeros(lenY,lenX);
+hough_index = 1;
+R_start = 28;
+R_end= 30;
+R_step = 0.25;
+R_total = (R_end - R_start)/R_step;
+hough_big = zeros(lenY,lenX,R_total + 1);
 
-for(i = 1:lenY)
-    for(j = 1:lenX)
-        if(BW(i,j) == 1)
-            hough_big = hough_big + generate_circle([lenY lenX], 29, [i j]);
-            hough_small = hough_small + generate_circle([lenY lenX], 25, [i j]);
+
+for(R = R_start:R_step:R_end)
+    tic;
+    R
+    for(i = 1:lenY)
+        for(j = 1:lenX)
+            if(BW(i,j) == 1)
+                hough_big(:,:,hough_index) = hough_big(:,:,hough_index) + generate_circle([lenY lenX], R, [i j]);
+                %hough_small(hough_index) = hough_small(hough_index) + generate_circle([lenY lenX], 25, [i j]);
+            end
         end
     end
+    toc;
+    hough_index = hough_index + 1;
 end
+
 %% Plot hough
 subplot(1,2,1);
 imagesc(hough_big);
@@ -98,15 +111,59 @@ imagesc(hough_small);
 title('Small coins');
 regionprops(hough_big);
 %%
+len = length(hough_big(1,1,:));
+peaks = zeros(6,2,len);
+
+for(i = 1:len)
+    peaks(:,:,i) = sortrows(houghpeaks(hough_big(:,:,i),6));
+end
+
+max_peaks = zeros(6,4); % (value,y,x,radius)
+
+for(j = 1:6)
+    for(i = 1:len)
+        y = peaks(j,1,i);
+        x = peaks(j,2,i);
+        if(hough_big(y,x,i) > max_peaks(j,1))
+            max_peaks(j,1) = hough_big(y,x,i);
+            max_peaks(j,2) = y;
+            max_peaks(j,3) = x;
+            max_peaks(j,4) = R_step*j+R_start;
+        end
+    end
+end
+
+new_image = zeros(lenY,lenX);
+for(i = 1:6)
+            max_peaks(i,1);
+            y = max_peaks(i,2);
+            x = max_peaks(i,3);
+            radius = max_peaks(j,4);
+            new_image = new_image + generate_circle([lenY lenX], radius, [y x]);
+end
+new_image = new_image*255;
+
+imshow(new_image);
+%for(i = 1:length(hough_big(1,1,:)))
+%    peaks(i) = houghpeaks(hough_big(:,:,i),6)
+%end
+
+
+
+
+%%
 new_BW = zeros(lenY,lenX);
 L = zeros(1,5); %L = local neighbourhood
+L_tot = zeros(7,5,R_total+1); %L = local neighbourhood
 incr = 1;
 reg_siz = 10;
 found = 0;
+radius_index = 1;
 
+for(radius_index = 1:R_total)
 for(i = 1:lenY)    
     for(j = 1:lenX)        
-        val = hough_big(i,j);
+        val = hough_big(i,j,radius_index);
         if(val > 70)                       
             for(L_index = 1:length(L(:,1)))              
                 Y = L(L_index,1);
@@ -121,14 +178,18 @@ for(i = 1:lenY)
                     break;                                     
                 end
             end
-            if(found == 0)
-                L = [L;[i j i j val]];
+            if(found == 0)                
+                L = [L;[i j i j val]];                
             end
             found = 0;
         end
     end
 end
-L = L(2:length(L(:,1)),:);
+1
+ L_tot(:,:,radius_index) = L;
+2
+end
+
 for(i = 1:length(L(:,1)))
     new_BW = new_BW + generate_circle([lenY lenX], 29, [L(i,1) L(i,2)]);
 end
