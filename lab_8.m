@@ -96,19 +96,60 @@ title('Big coins');
 subplot(1,2,2);
 imagesc(hough_small);
 title('Small coins');
+regionprops(hough_big);
 %%
 new_BW = zeros(lenY,lenX);
-local = zeros(1,5);
+L = zeros(1,5); %L = local neighbourhood
 incr = 1;
-for(i = 1:lenY)
-    for(j = 1:lenX)
-        if(hough_big(i,j) > 75)
-            find(local(:,1,1,1) >= i
-            local(incr) = [i,j,i+5,j+5, max(local(5),hough_big(i,j))];
-            %new_BW = new_BW + generate_circle([lenY lenX], 29, [i j]);
+reg_siz = 10;
+found = 0;
+
+for(i = 1:lenY)    
+    for(j = 1:lenX)        
+        val = hough_big(i,j);
+        if(val > 70)                       
+            for(L_index = 1:length(L(:,1)))              
+                Y = L(L_index,1);
+                X = L(L_index,2);                               
+                if((Y - reg_siz <= i && i < Y + reg_siz) && (X - reg_siz <= j && j < X + reg_siz))                                                                                
+                    found = 1;
+                    if(L(L_index,5) < val)                        
+                        L(L_index,3) = i;
+                        L(L_index,4) = j;
+                        L(L_index,5) = val;
+                    end                    
+                    break;                                     
+                end
+            end
+            if(found == 0)
+                L = [L;[i j i j val]];
+            end
+            found = 0;
         end
     end
 end
-imshow(new_BW);
+L = L(2:length(L(:,1)),:);
+for(i = 1:length(L(:,1)))
+    new_BW = new_BW + generate_circle([lenY lenX], 29, [L(i,1) L(i,2)]);
+end
+imagesc(new_BW);
+        
+        
+   
+        
+        
+%            index_Y = find(local(:,1,1,1) >= i)
+%            if(isempty(index))
+%                local = [local; [i,j,i,j,val]];
+%            else
+%            index_X = 
+%            local(incr) = [i,j,i+5,j+5, max(local(5),hough_big(i,j))];
+            %new_BW = new_BW + generate_circle([lenY lenX], 29, [i j]);
 
-
+            %%
+radius = zeros(10,1);
+for(i = 1:10)
+    radius(i) = Q2_region(i).Area/(2*pi)
+end
+%%
+fprintf('plz');
