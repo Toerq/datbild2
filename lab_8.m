@@ -69,6 +69,33 @@ end
     
 subplot(1,3,3);
 imshow(new_image);
+%% 13 249 in course book
+
+% 29 radius in big circle
+% 25 radius in small circle
+%generate_circle(imsize,radius,pos)
+
+lenX = length(BW(1,:));
+lenY = length(BW(:,1));
+
+hough_big = zeros(lenY,lenX);
+hough_small = zeros(lenY,lenX);
+
+for(i = 1:lenY)
+    for(j = 1:lenX)
+        if(BW(i,j) == 1)
+            hough_big = hough_big + generate_circle([lenY lenX], 29, [i j]);
+            hough_small = hough_small + generate_circle([lenY lenX], 25, [i j]);
+        end
+    end
+end
+%%
+subplot(1,2,1);
+imagesc(hough_big);
+title('Big coins');
+subplot(1,2,2);
+imagesc(hough_small);
+title('Small coins');
 
 
 
